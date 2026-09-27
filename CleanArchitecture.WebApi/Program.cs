@@ -1,6 +1,8 @@
 using CleanArchitecture.Application.Behaviors;
 using CleanArchitecture.Application.Service;
+using CleanArchitecture.Domain.Entities;
 using CleanArchitecture.Domain.Repositories;
+using CleanArchitecture.Infrastructure.Email;
 using CleanArchitecture.Persistence;
 using CleanArchitecture.Persistence.Context;
 using CleanArchitecture.Persistence.Repositories;
@@ -8,10 +10,14 @@ using CleanArchitecture.Persistence.Services;
 using CleanArchitecture.WebApi.Middleware;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
+builder.Services.AddScoped<IMailService, MailService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICarService, CarService>();
 builder.Services.AddTransient<ExceptionMiddleware>();
 
@@ -23,6 +29,14 @@ builder.Services.AddDbContext<AppDbContext>(
     opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer"))
 
     );
+builder.Services.AddIdentityCore<User>(opt =>
+{
+    opt.Password.RequireNonAlphanumeric = false;
+    opt.Password.RequiredLength = 1;
+    opt.Password.RequireUppercase = false;
+})
+    .AddEntityFrameworkStores<AppDbContext>();
+
 builder.Services.AddControllers().AddApplicationPart(typeof(CleanArchitecture.Presentation.AssemblyReference).Assembly);
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CleanArchitecture.Application.AssemblyReference).Assembly));
 

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CleanArchitecture.Application.Features.AuthFeatures.Commands.Register;
 using CleanArchitecture.Application.Features.CarFeatures.Commands.CreateCar;
 using CleanArchitecture.Domain.Entities;
 using System;
@@ -14,6 +15,7 @@ namespace CleanArchitecture.Persistence.Mappings
         public MappingProfile()
         {
             CreateMap<CreateCarCommand, Car>().ReverseMap();
+            CreateMap<RegisterCommand, User>().ReverseMap();
         }
     }
 }
