@@ -8,8 +8,10 @@ using CleanArchitecture.Persistence.Context;
 using CleanArchitecture.Persistence.Repositories;
 using CleanArchitecture.Persistence.Services;
 using CleanArchitecture.WebApi.Middleware;
+using CleanArchitecture.WebApi.OptionsSetup;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,6 +26,10 @@ builder.Services.AddTransient<ExceptionMiddleware>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ICarRepository, CarRepository>();
+builder.Services.ConfigureOptions<JwtOptionsSetup>();
+builder.Services.ConfigureOptions<JwtBearerOptionsSetup>();
+builder.Services.AddAuthentication().AddJwtBearer();
+
 builder.Services.AddAutoMapper(typeof(CleanArchitecture.Persistence.AssemblyReference).Assembly);
 builder.Services.AddDbContext<AppDbContext>(
     opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer"))
