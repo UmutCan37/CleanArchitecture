@@ -1,7 +1,9 @@
+using CleanArchitecture.Application.Abstractions;
 using CleanArchitecture.Application.Behaviors;
 using CleanArchitecture.Application.Service;
 using CleanArchitecture.Domain.Entities;
 using CleanArchitecture.Domain.Repositories;
+using CleanArchitecture.Infrastructure.Authenticaton;
 using CleanArchitecture.Infrastructure.Email;
 using CleanArchitecture.Persistence;
 using CleanArchitecture.Persistence.Context;
@@ -14,6 +16,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,8 +31,21 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ICarRepository, CarRepository>();
 builder.Services.ConfigureOptions<JwtOptionsSetup>();
 builder.Services.ConfigureOptions<JwtBearerOptionsSetup>();
-builder.Services.AddAuthentication().AddJwtBearer();
-
+//builder.Services.AddAuthentication().AddJwtBearer();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"JWT HATA: {context.Exception}");
+                return Task.CompletedTask;
+            }
+        };
+    });
+builder.Services.AddAuthorization();
+builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 builder.Services.AddAutoMapper(typeof(CleanArchitecture.Persistence.AssemblyReference).Assembly);
 builder.Services.AddDbContext<AppDbContext>(
     opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer"))
@@ -48,7 +64,25 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Clean
 
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 builder.Services.AddValidatorsFromAssembly(typeof(CleanArchitecture.Application.AssemblyReference).Assembly);
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(setup =>
+{
+    setup.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Put **_ONLY_** your JWT Bearer token in the textbox below!"
+    });
+
+    setup.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("bearer", document)] = []
+    });
+});
+
+
 var app = builder.Build();
 app.UseMiddlewareExtensions();
 
@@ -61,6 +95,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

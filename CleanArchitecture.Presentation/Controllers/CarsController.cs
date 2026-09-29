@@ -3,6 +3,7 @@ using CleanArchitecture.Application.Features.CarFeatures.Queries.GetAllCar;
 using CleanArchitecture.Domain.Dtos;
 using CleanArchitecture.Presentation.Abstraction;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Presentation.Controllers
 {
+    
     public sealed class CarsController : ApiController
     {
         public CarsController(IMediator mediator) : base(mediator)
