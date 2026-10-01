@@ -1,6 +1,7 @@
 ﻿using CleanArchitecture.Application.Features.CarFeatures.Commands.CreateCar;
 using CleanArchitecture.Application.Features.CarFeatures.Queries.GetAllCar;
 using CleanArchitecture.Domain.Dtos;
+using CleanArchitecture.Infrastructure.Authorization;
 using CleanArchitecture.Presentation.Abstraction;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -13,12 +14,14 @@ using System.Threading.Tasks;
 
 namespace CleanArchitecture.Presentation.Controllers
 {
-    
+    [RoleFilter("Admin")]
     public sealed class CarsController : ApiController
     {
+        
         public CarsController(IMediator mediator) : base(mediator)
         {
         }
+        
         [HttpPost]
         public async Task<IActionResult> CreateCar(CreateCarCommand command, CancellationToken cancellationToken)
         {

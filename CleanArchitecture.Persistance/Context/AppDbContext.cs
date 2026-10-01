@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.Persistence.Context;
 
-public sealed class AppDbContext : IdentityDbContext<User,IdentityRole<Guid>, Guid>
+public sealed class AppDbContext : IdentityDbContext<User,Role, Guid>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
